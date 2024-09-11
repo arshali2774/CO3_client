@@ -1,19 +1,18 @@
 import { gql, useMutation } from '@apollo/client';
 import { useEffect, useState } from 'react';
-
 declare global {
   interface Window {
     Telegram: {
       WebApp: {
-        ready: () => void;
-        initDataUnsafe?: {
+        initData: string;
+        initDataUnsafe: {
           user?: {
-            id?: number;
-            username?: string;
-            first_name?: string;
+            id: number;
+            username: string;
+            first_name: string;
+            last_name?: string;
           };
         };
-        close: () => void;
       };
     };
   }
@@ -32,32 +31,17 @@ const App = () => {
   const [username, setUsername] = useState<string | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
   const [updateCoins] = useMutation(UPDATE_COINS_MUTATION);
-  console.log(window.Telegram);
   useEffect(() => {
-    // Check if window.Telegram exists (i.e., app is running inside Telegram WebView)
-    if (window.Telegram) {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-
-      // Fetch the user's Telegram information
-      const user = tg.initDataUnsafe?.user;
-      console.log(user);
-      if (user) {
-        const name = user.username || user.first_name || 'User';
-        setUsername(name);
-        setUserId(user.id || 0);
-      }
-
-      return () => {
-        tg.close();
-      };
-    } else {
-      console.log('Running outside Telegram WebApp');
+    const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+    if (tgUser) {
+      setUserId(tgUser.id);
+      setUsername(
+        tgUser.username || `${tgUser.first_name} ${tgUser.last_name || ''}`
+      );
     }
   }, []);
   const handleTap = async () => {
     setCoins((prev) => prev + 1);
-    // TODO: Send the coin balance to the backend (Supabase)
     try {
       if (userId) {
         const { data } = await updateCoins({
@@ -72,7 +56,6 @@ const App = () => {
       }
     } catch (error) {
       console.error('error updating coin balance', error);
-      console.log(window.Telegram);
     }
   };
   return (
