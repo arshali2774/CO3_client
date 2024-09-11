@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 declare global {
   interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Telegram: any;
   }
 }
@@ -15,6 +16,7 @@ const App = () => {
 
       // Fetch the user's Telegram information
       const user = tg.initDataUnsafe?.user;
+      console.log(user);
       if (user) {
         setUsername(user.username || user.first_name);
       }
