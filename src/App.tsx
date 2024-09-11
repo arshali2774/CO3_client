@@ -1,4 +1,4 @@
-import { gql, useMutation } from '@apollo/client';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import { useEffect, useState } from 'react';
 declare global {
   interface Window {
@@ -17,12 +17,23 @@ declare global {
     };
   }
 }
+const GET_USER = gql`
+  query GetUser($chat_id: Int!) {
+    getUser(chat_id: $chat_id) {
+      id
+      name
+      coin_balance
+      chat_id
+    }
+  }
+`;
 // Define the mutation
 const UPDATE_COINS_MUTATION = gql`
-  mutation UpdateCoins($id: ID!, $coins: Int!) {
-    updateCoins(id: $id, coins: $coins) {
+  mutation UpdateCoins($chat_id: Int!, $coins: Int!) {
+    updateCoins(chat_id: $chat_id, coins: $coins) {
       id
       coin_balance
+      chat_id
     }
   }
 `;
@@ -30,6 +41,10 @@ const App = () => {
   const [coins, setCoins] = useState(0);
   const [username, setUsername] = useState<string | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
+  const { data: userData } = useQuery(GET_USER, {
+    variables: { chat_id: userId },
+    skip: !userId,
+  });
   const [updateCoins] = useMutation(UPDATE_COINS_MUTATION);
   useEffect(() => {
     const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
@@ -40,14 +55,20 @@ const App = () => {
       );
     }
   }, []);
+  useEffect(() => {
+    if (userData?.getUser) {
+      setCoins(userData.getUser.coin_balance);
+    }
+  }, [userData]);
   const handleTap = async () => {
-    setCoins((prev) => prev + 1);
+    const newCoinBalance = coins + 1;
+    setCoins(newCoinBalance);
     try {
       if (userId) {
         const { data } = await updateCoins({
           variables: {
-            id: userId,
-            coins: coins + 1,
+            chat_id: userId,
+            coins: newCoinBalance,
           },
         });
         console.log('coin balance updated', data);
