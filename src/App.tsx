@@ -71,6 +71,7 @@ const App = () => {
       }
     } catch (error) {
       console.error('error updating coin balance', error);
+      console.log(window.Telegram);
     }
   };
   return (
