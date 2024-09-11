@@ -32,6 +32,7 @@ const App = () => {
   const [username, setUsername] = useState<string | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
   const [updateCoins] = useMutation(UPDATE_COINS_MUTATION);
+  console.log(window.Telegram);
   useEffect(() => {
     // Check if window.Telegram exists (i.e., app is running inside Telegram WebView)
     if (window.Telegram) {
