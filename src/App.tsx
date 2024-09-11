@@ -40,16 +40,22 @@ const UPDATE_COINS_MUTATION = gql`
 const App = () => {
   const [coins, setCoins] = useState(0);
   const [username, setUsername] = useState<string | null>(null);
-  const [userId, setUserId] = useState<number | null>(null);
-  const { data: userData } = useQuery(GET_USER, {
-    variables: { chat_id: userId },
-    skip: !userId,
+  const [chatId, setChatId] = useState<number | null>(null);
+  const {
+    data: userData,
+    error: userError,
+    refetch,
+  } = useQuery(GET_USER, {
+    variables: { chat_id: chatId },
+    skip: !chatId,
   });
-  const [updateCoins] = useMutation(UPDATE_COINS_MUTATION);
+  const [updateCoins, { error: updateError }] = useMutation(
+    UPDATE_COINS_MUTATION
+  );
   useEffect(() => {
     const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
     if (tgUser) {
-      setUserId(tgUser.id);
+      setChatId(tgUser.id);
       setUsername(
         tgUser.username || `${tgUser.first_name} ${tgUser.last_name || ''}`
       );
@@ -57,32 +63,46 @@ const App = () => {
   }, []);
   useEffect(() => {
     if (userData?.getUser) {
+      console.log('User data received:', userData.getUser);
       setCoins(userData.getUser.coin_balance);
     }
-  }, [userData]);
+    if (userError) {
+      console.error('Error fetching user data:', userError);
+    }
+  }, [userData, userError]);
   const handleTap = async () => {
     const newCoinBalance = coins + 1;
     setCoins(newCoinBalance);
     try {
-      if (userId) {
+      if (chatId) {
+        console.log(
+          'Updating coins for chat_id:',
+          chatId,
+          'New balance:',
+          newCoinBalance
+        );
         const { data } = await updateCoins({
           variables: {
-            chat_id: userId,
+            chat_id: chatId,
             coins: newCoinBalance,
           },
         });
-        console.log('coin balance updated', data);
+        console.log('Coin balance updated', data);
+        refetch(); // Refetch user data to ensure UI is up-to-date
       } else {
-        console.error('user id is not available');
+        console.error('Chat ID is not available');
       }
     } catch (error) {
-      console.error('error updating coin balance', error);
+      console.error('Error updating coin balance:', error);
+      setCoins(coins); // Revert the coin balance if update failed
     }
   };
+  if (userError) return <p>Error loading user data</p>;
+  if (updateError) return <p>Error updating coins</p>;
   return (
     <div className='h-screen flex flex-col items-center justify-center gap-4'>
       <h1 className='text-4xl font-bold'>Tap Me</h1>
-      {userId && <p>User ID: {userId}</p>}
+      {chatId && <p>User ID: {chatId}</p>}
       {username && <p>Welcome, {username}!</p>}
       <button className='btn btn-primary' onClick={handleTap}>
         Tap to Earn Coins
