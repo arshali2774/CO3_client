@@ -1,5 +1,8 @@
 import { gql, useMutation, useQuery } from '@apollo/client';
-import { useEffect, useState } from 'react';
+import { Player } from '@lottiefiles/react-lottie-player';
+import { useEffect, useRef, useState } from 'react';
+import animationData from './lottie/coin.json';
+import image from './lottie/tapcoin.json';
 declare global {
   interface Window {
     Telegram: {
@@ -41,6 +44,10 @@ const App = () => {
   const [coins, setCoins] = useState(0);
   const [username, setUsername] = useState<string | null>(null);
   const [chatId, setChatId] = useState<number | null>(null);
+  const playerRef = useRef<Player>(null);
+  const buttonPlayerRef = useRef<Player>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [showPlusOne, setShowPlusOne] = useState(false);
   const {
     data: userData,
     error: userError,
@@ -71,6 +78,15 @@ const App = () => {
     }
   }, [userData, userError]);
   const handleTap = async () => {
+    // Trigger animation for '+1'
+    setShowPlusOne(true);
+
+    // Hide the animation after 1 second (adjust time based on animation duration)
+    setTimeout(() => setShowPlusOne(false), 1000);
+    playerRef.current?.setSeeker(50);
+    playerRef.current?.play();
+    buttonPlayerRef.current?.setPlayerSpeed(5);
+    buttonPlayerRef.current?.play();
     const newCoinBalance = coins + 1;
     setCoins(newCoinBalance);
     try {
@@ -101,13 +117,30 @@ const App = () => {
   if (updateError) return <p>Error updating coins</p>;
   return (
     <div className='h-screen flex flex-col items-center justify-center gap-4'>
-      <h1 className='text-4xl font-bold'>Tap Me</h1>
-      {chatId && <p>User ID: {chatId}</p>}
-      {username && <p>Welcome, {username}!</p>}
-      <button className='btn btn-primary' onClick={handleTap}>
-        Tap to Earn Coins
+      {/* {chatId && <p>User ID: {chatId}</p>}
+      {username && <p>Welcome, {username}!</p>} */}
+      <div className='flex items-center gap-4'>
+        <div className='bg-base-300 text-base-content px-4 py-2 rounded-md h-full text-xl flex justify-center items-center'>
+          <p> Welcome, {username}!</p>
+        </div>
+        <div className='bg-base-300 rounded-md text-base-content flex justify-center items-center pr-4 gap-2'>
+          <Player src={animationData} ref={playerRef} />
+          <p className='text-xl font-bold'>{coins}</p>
+        </div>
+      </div>
+      <button className='w-[20%]' onClick={handleTap} ref={buttonRef}>
+        <Player
+          src={image}
+          style={{ width: '100%', height: '100%' }}
+          ref={buttonPlayerRef}
+        />
+        {showPlusOne && (
+          <div className='absolute top-1/2 left-1/2 -translate-x-1/2  text-lg font-bold text-white animate-ping'>
+            +1
+          </div>
+        )}
+        <p>⬆️ Tap Me!</p>
       </button>
-      <p>Your Coins: {coins}</p>
     </div>
   );
 };
