@@ -1,50 +1,125 @@
-# React + TypeScript + Vite
+# Telegram Coin Tap App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a simple Telegram Web App assignment that allows users to tap and increase their coin balance. The app is built using React, Apollo Client, and GraphQL. Users can tap on the screen to increment their coin balance, which is stored and fetched from a backend server using GraphQL queries and mutations.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Coin Balance Display:** The app displays the user's current coin balance fetched from the backend.
+- **Tap-to-Increment:** Users can tap on the button to increase their coin balance.
+- **Real-time Update:** Coin balance is updated in real-time using GraphQL mutations.
+- **Lottie Animations:** Smooth animations using Lottie for both the coin display and tap button.
+- **Telegram Web App Integration:** The app integrates with Telegram's Web App platform to retrieve the user's data (username, user ID).
 
-## Expanding the ESLint configuration
+## Project Structure
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- **React:** For building the frontend UI.
+- **Apollo Client:** To manage GraphQL queries and mutations.
+- **GraphQL:** API query language
+- **Lottie**: For adding animations to the app.
+- **TypeScript**: To ensure type safety and reliability of the code.
 
-- Configure the top-level `parserOptions` property like this:
+## Setup Instructions
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### Prerequisites
+
+Make sure you have the following installed on your machine:
+
+- Node.js (v14 or later)
+- Yarn or npm
+- A backend server running with the necessary GraphQL endpoints for user and coin balance management
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+git clone [repository-url](https://github.com/arshali2774/CO3_client.git)
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+2. Navigate to the project directory:
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+cd CO3_client
 ```
+
+3. Install dependencies:
+
+```bash
+npm install
+```
+
+### Configuration
+
+1. Make sure you have a running GraphQL server with the following queries and mutations:
+
+- `getUser(chat_id: Int!)`: Fetches the user data including the current coin balance.
+- `updateCoins(chat_id: Int!, coins: Int!)`: Updates the user's coin balance.
+
+2. If needed, update the GraphQL endpoint in the Apollo Client setup.
+3. Ensure the app is integrated with Telegram's Web App platform by correctly configuring the Telegram Web App settings.
+
+### Running the App
+
+To interact with the app:
+
+- Open my Telegram bot: https://t.me/tapme_co3_bot
+- Type the /start command, and you will get a response to open the app.
+- Open the app and click to increase coins.
+
+> **Note:** Since the backend is deployed on Render, the first launch may take around 50 seconds. If you do not see the results or encounter an error message like "Error: User data not found," please wait 1-2 minutes and try again.
+
+## GraphQL Endpoints
+
+### Queries
+
+- `GET_USER`: Fetches the user data based on `chat_id`:
+  ```graphql
+  query GetUser($chat_id: Int!) {
+    getUser(chat_id: $chat_id) {
+      id
+      name
+      coin_balance
+      chat_id
+    }
+  }
+  ```
+
+### Mutations
+
+- `UPDATE_COINS_MUTATION`: Updates the coin balance for the user:
+  ```graphql
+  mutation UpdateCoins($chat_id: Int!, $coins: Int!) {
+    updateCoins(chat_id: $chat_id, coins: $coins) {
+      id
+      coin_balance
+      chat_id
+    }
+  }
+  ```
+
+## How It Works
+
+1. The app retrieves the user's Telegram information through the window.Telegram.WebApp.initDataUnsafe object. It uses this data to fetch the user's existing coin balance from the backend via a GraphQL query.
+2. When the user taps on the button, a +1 animation is triggered, and the coin balance is incremented in the UI.
+3. The new balance is sent to the backend using a GraphQL mutation, which updates the user's coin balance on the server.
+4. The app continuously fetches the latest balance to keep the UI up-to-date.
+
+## Technology Stack
+
+- **React**: Frontend framework
+- **Apollo Client**: For handling GraphQL queries and mutations
+- **GraphQL**: API query language
+- **TypeScript**: Ensuring type safety
+- **Lottie**: Adding animations to the app
+- **Telegram Web App API**: For retrieving user data
+
+## Future Improvements
+
+- Implement caching for GraphQL queries to minimize unnecessary requests.
+- Add more engaging animations or sound effects when the user taps.
+- Introduce a leaderboard feature to compare coin balances among users.
+
+## Contact
+
+For any questions or clarifications, feel free to contact me at:
+Email: arshaliwork@gmail.com

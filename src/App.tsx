@@ -1,8 +1,10 @@
-import { gql, useMutation, useQuery } from '@apollo/client';
-import { Player } from '@lottiefiles/react-lottie-player';
-import { useEffect, useRef, useState } from 'react';
-import animationData from './lottie/coin.json';
-import image from './lottie/tapcoin.json';
+import { gql, useMutation, useQuery } from '@apollo/client'; // GraphQL query and mutation hooks
+import { Player } from '@lottiefiles/react-lottie-player'; // Lottie player for animations
+import { useEffect, useRef, useState } from 'react'; // React hooks
+import animationData from './lottie/coin.json'; // Animation for coin display
+import image from './lottie/tapcoin.json'; // Animation for tap button
+
+// Declare the global Telegram WebApp interface to access the user data
 declare global {
   interface Window {
     Telegram: {
@@ -20,6 +22,8 @@ declare global {
     };
   }
 }
+
+// GraphQL query to get the user details
 const GET_USER = gql`
   query GetUser($chat_id: Int!) {
     getUser(chat_id: $chat_id) {
@@ -30,7 +34,8 @@ const GET_USER = gql`
     }
   }
 `;
-// Define the mutation
+
+// GraphQL mutation to update the coin balance
 const UPDATE_COINS_MUTATION = gql`
   mutation UpdateCoins($chat_id: Int!, $coins: Int!) {
     updateCoins(chat_id: $chat_id, coins: $coins) {
@@ -40,55 +45,66 @@ const UPDATE_COINS_MUTATION = gql`
     }
   }
 `;
+
 const App = () => {
-  const [coins, setCoins] = useState(0);
-  const [username, setUsername] = useState<string | null>(null);
-  const [chatId, setChatId] = useState<number | null>(null);
-  const playerRef = useRef<Player>(null);
-  const buttonPlayerRef = useRef<Player>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [showPlusOne, setShowPlusOne] = useState(false);
+  const [coins, setCoins] = useState(0); // Store the coin balance
+  const [username, setUsername] = useState<string | null>(null); // Store the user's username
+  const [chatId, setChatId] = useState<number | null>(null); // Store the chat ID from Telegram WebApp
+  const playerRef = useRef<Player>(null); // Reference for the coin Lottie animation
+  const buttonPlayerRef = useRef<Player>(null); // Reference for the tap button Lottie animation
+  const buttonRef = useRef<HTMLButtonElement>(null); // Reference for the button element
+  const [showPlusOne, setShowPlusOne] = useState(false); // Control to show the '+1' animation
+
+  // Fetch user data from the GraphQL API
   const {
     data: userData,
     error: userError,
     refetch,
   } = useQuery(GET_USER, {
-    variables: { chat_id: chatId },
-    skip: !chatId,
+    variables: { chat_id: chatId }, // Fetch user by chat ID
+    skip: !chatId, // Skip the query if chatId is not available
   });
+
+  // GraphQL mutation hook for updating coins
   const [updateCoins, { error: updateError }] = useMutation(
     UPDATE_COINS_MUTATION
   );
+
+  // On component mount, extract Telegram user data from the WebApp interface
   useEffect(() => {
     const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
     if (tgUser) {
-      setChatId(tgUser.id);
+      setChatId(tgUser.id); // Set chat ID
       setUsername(
         tgUser.username || `${tgUser.first_name} ${tgUser.last_name || ''}`
-      );
+      ); // Set username
     }
   }, []);
+
+  // When user data is fetched, update the coin balance
   useEffect(() => {
     if (userData?.getUser) {
       console.log('User data received:', userData.getUser);
-      setCoins(userData.getUser.coin_balance);
+      setCoins(userData.getUser.coin_balance); // Set coins from fetched data
     }
     if (userError) {
       console.error('Error fetching user data:', userError);
     }
   }, [userData, userError]);
-  const handleTap = async () => {
-    // Trigger animation for '+1'
-    setShowPlusOne(true);
 
-    // Hide the animation after 1 second (adjust time based on animation duration)
-    setTimeout(() => setShowPlusOne(false), 1000);
-    playerRef.current?.setSeeker(50);
-    playerRef.current?.play();
-    buttonPlayerRef.current?.setPlayerSpeed(5);
-    buttonPlayerRef.current?.play();
-    const newCoinBalance = coins + 1;
-    setCoins(newCoinBalance);
+  // Handle tap action, updating coins and triggering animations
+  const handleTap = async () => {
+    setShowPlusOne(true); // Show '+1' animation
+    setTimeout(() => setShowPlusOne(false), 1000); // Hide the animation after 1 second
+    playerRef.current?.setSeeker(50); // Adjust animation timing
+    playerRef.current?.play(); // Play coin animation
+    buttonPlayerRef.current?.setPlayerSpeed(5); // Speed up tap animation
+    buttonPlayerRef.current?.play(); // Play tap animation
+
+    const newCoinBalance = coins + 1; // Increment coin balance locally
+    setCoins(newCoinBalance); // Update state with new coin balance
+
+    // Update the coin balance in the backend
     try {
       if (chatId) {
         console.log(
@@ -99,7 +115,7 @@ const App = () => {
         );
         const { data } = await updateCoins({
           variables: {
-            chat_id: chatId,
+            chat_id: chatId, // Send chat ID and new coin balance to GraphQL mutation
             coins: newCoinBalance,
           },
         });
@@ -110,27 +126,32 @@ const App = () => {
       }
     } catch (error) {
       console.error('Error updating coin balance:', error);
-      setCoins(coins); // Revert the coin balance if update failed
+      setCoins(coins); // Revert coin balance if update fails
     }
   };
+
+  // Render error messages if data fetching or mutation fails
   if (userError) return <p>Error loading user data</p>;
   if (updateError) return <p>Error updating coins</p>;
+
   return (
     <div className='h-screen flex flex-col items-center justify-center gap-4'>
-      {/* {chatId && <p>User ID: {chatId}</p>}
-      {username && <p>Welcome, {username}!</p>} */}
+      {/* Display user information */}
       <div className='flex items-center gap-4'>
         <div className='bg-base-300 text-base-content px-4 py-2 rounded-md h-full flex justify-center items-center'>
           <p className='lg:text-xl font-bold sm:text-xs'>
             {' '}
-            Welcome, {username}!
+            Welcome, {username}!{' '}
           </p>
         </div>
         <div className='bg-base-300 rounded-md text-base-content flex justify-center items-center pr-4 gap-2'>
-          <Player src={animationData} ref={playerRef} />
-          <p className='lg:text-xl font-bold sm:text-xs'>{coins}</p>
+          <Player src={animationData} ref={playerRef} /> {/* Coin animation */}
+          <p className='lg:text-xl font-bold sm:text-xs'>{coins}</p>{' '}
+          {/* Display coin balance */}
         </div>
       </div>
+
+      {/* Tap button with animation */}
       <button className='w-[60%]' onClick={handleTap} ref={buttonRef}>
         <Player
           src={image}
@@ -138,13 +159,16 @@ const App = () => {
           ref={buttonPlayerRef}
         />
         {showPlusOne && (
-          <div className='absolute top-1/2 left-1/2 -translate-x-1/2  text-lg font-bold text-white animate-ping'>
+          <div className='absolute top-1/2 left-1/2 -translate-x-1/2 text-lg font-bold text-white animate-ping'>
             +1
           </div>
         )}
       </button>
+
+      {/* Tap me instruction */}
       <p className='w-full text-center'>⬆️ Tap Me!</p>
     </div>
   );
 };
+
 export default App;
