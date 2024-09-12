@@ -8,7 +8,7 @@ This is a simple Telegram Web App assignment that allows users to tap and increa
 - **Tap-to-Increment:** Users can tap on the button to increase their coin balance.
 - **Real-time Update:** Coin balance is updated in real-time using GraphQL mutations.
 - **Lottie Animations:** Smooth animations using Lottie for both the coin display and tap button.
-- **Telegram Web App Integration:** The app integrates with Telegram's Web App platform to retrieve the user's data (username, user ID).
+- **Telegram Web App Integration:** The app integrates with Telegram's Web App platform to retrieve the user's data (username, user ID). [Link](https://t.me/tapme_co3_bot)
 
 ## Project Structure
 
