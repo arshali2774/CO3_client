@@ -120,15 +120,18 @@ const App = () => {
       {/* {chatId && <p>User ID: {chatId}</p>}
       {username && <p>Welcome, {username}!</p>} */}
       <div className='flex items-center gap-4'>
-        <div className='bg-base-300 text-base-content px-4 py-2 rounded-md h-full text-xl flex justify-center items-center'>
-          <p> Welcome, {username}!</p>
+        <div className='bg-base-300 text-base-content px-4 py-2 rounded-md h-full flex justify-center items-center'>
+          <p className='lg:text-xl font-bold sm:text-xs'>
+            {' '}
+            Welcome, {username}!
+          </p>
         </div>
         <div className='bg-base-300 rounded-md text-base-content flex justify-center items-center pr-4 gap-2'>
           <Player src={animationData} ref={playerRef} />
-          <p className='text-xl font-bold'>{coins}</p>
+          <p className='lg:text-xl font-bold sm:text-xs'>{coins}</p>
         </div>
       </div>
-      <button className='w-[20%]' onClick={handleTap} ref={buttonRef}>
+      <button className='w-[60%]' onClick={handleTap} ref={buttonRef}>
         <Player
           src={image}
           style={{ width: '100%', height: '100%' }}
@@ -139,8 +142,8 @@ const App = () => {
             +1
           </div>
         )}
-        <p>⬆️ Tap Me!</p>
       </button>
+      <p className='w-full text-center'>⬆️ Tap Me!</p>
     </div>
   );
 };
