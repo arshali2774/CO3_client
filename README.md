@@ -66,7 +66,7 @@ To interact with the app:
 - Type the /start command, and you will get a response to open the app.
 - Open the app and click to increase coins.
 
-> **Note:** Since the backend is deployed on Render, the first launch may take around 50 seconds. If you do not see the results or encounter an error message like "Error: User data not found," please wait 1-2 minutes and try again.
+> [note!] Since the backend is deployed on Render, the first launch may take around 50 seconds. If you do not see the results or encounter an error message like "Error: User data not found," please wait 1-2 minutes and try again.
 
 ## GraphQL Endpoints
 
