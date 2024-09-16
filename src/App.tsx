@@ -45,7 +45,16 @@ const UPDATE_COINS_MUTATION = gql`
     }
   }
 `;
-
+// GraphQL mutation to sync coins
+const SYNC_COINS = gql`
+  mutation SyncCoins($chat_id: Int!, $offlineCoins: Int!) {
+    syncCoins(chat_id: $chat_id, offlineCoins: $offlineCoins) {
+      id
+      name
+      coin_balance
+    }
+  }
+`;
 const App = () => {
   const [coins, setCoins] = useState(0); // Store the coin balance
   const [username, setUsername] = useState<string | null>(null); // Store the user's username
@@ -54,6 +63,9 @@ const App = () => {
   const buttonPlayerRef = useRef<Player>(null); // Reference for the tap button Lottie animation
   const buttonRef = useRef<HTMLButtonElement>(null); // Reference for the button element
   const [showPlusOne, setShowPlusOne] = useState(false); // Control to show the '+1' animation
+  const [isOnline, setIsOnline] = useState(navigator.onLine); // Initialize based on current status
+  const [offlineCoins, setOfflineCoins] = useState(0); // Coins earned offline
+  const [isSyncing, setIsSyncing] = useState(false); // Track sync state
 
   // Fetch user data from the GraphQL API
   const {
@@ -69,6 +81,8 @@ const App = () => {
   const [updateCoins, { error: updateError }] = useMutation(
     UPDATE_COINS_MUTATION
   );
+  // GraphQL mutation hook for syncing coins
+  const [syncCoins] = useMutation(SYNC_COINS);
 
   // On component mount, extract Telegram user data from the WebApp interface
   useEffect(() => {
@@ -104,38 +118,95 @@ const App = () => {
     const newCoinBalance = coins + 1; // Increment coin balance locally
     setCoins(newCoinBalance); // Update state with new coin balance
 
-    // Update the coin balance in the backend
-    try {
-      if (chatId) {
-        console.log(
-          'Updating coins for chat_id:',
-          chatId,
-          'New balance:',
-          newCoinBalance
-        );
-        const { data } = await updateCoins({
-          variables: {
-            chat_id: chatId, // Send chat ID and new coin balance to GraphQL mutation
-            coins: newCoinBalance,
-          },
-        });
-        console.log('Coin balance updated', data);
-        refetch(); // Refetch user data to ensure UI is up-to-date
-      } else {
-        console.error('Chat ID is not available');
+    if (isOnline) {
+      // Update the coin balance in the backend
+      try {
+        if (chatId) {
+          console.log(
+            'Updating coins for chat_id:',
+            chatId,
+            'New balance:',
+            newCoinBalance
+          );
+          const { data } = await updateCoins({
+            variables: {
+              chat_id: chatId, // Send chat ID and new coin balance to GraphQL mutation
+              coins: newCoinBalance,
+            },
+          });
+          console.log('Coin balance updated', data);
+          refetch(); // Refetch user data to ensure UI is up-to-date
+        } else {
+          console.error('Chat ID is not available');
+        }
+      } catch (error) {
+        console.error('Error updating coin balance:', error);
+        setCoins(coins); // Revert coin balance if update fails
       }
-    } catch (error) {
-      console.error('Error updating coin balance:', error);
-      setCoins(coins); // Revert coin balance if update fails
+    } else {
+      // Offline, so store the coins locally
+      const storedCoins = Number(localStorage.getItem('offlineCoins')) || 0;
+      const newTotal = storedCoins + 1;
+      localStorage.setItem('offlineCoins', newTotal.toString());
+      setOfflineCoins(newTotal); // Update the state to reflect locally stored coins
     }
   };
+  // Function to sync offline coins to the server
+  const syncCoinsToServer = async () => {
+    const storedCoins = Number(localStorage.getItem('offlineCoins')) || 0;
+    if (storedCoins > 0) {
+      setIsSyncing(true);
 
+      try {
+        // Make the mutation request
+        await syncCoins({
+          variables: {
+            chat_id: chatId, // Replace with actual chat_id
+            offlineCoins: storedCoins,
+          },
+        });
+
+        // Clear offline coins after syncing
+        localStorage.removeItem('offlineCoins');
+        setOfflineCoins(0);
+        setIsSyncing(false);
+        console.log('Coins synced successfully.');
+      } catch (error) {
+        console.error('Error syncing coins:', error);
+        setIsSyncing(false);
+      }
+    }
+  };
+  // Sync coins when the user comes online
+  useEffect(() => {
+    const handleOnlineStatus = () => setIsOnline(navigator.onLine);
+
+    window.addEventListener('online', handleOnlineStatus);
+    window.addEventListener('offline', handleOnlineStatus);
+
+    if (isOnline) {
+      syncCoinsToServer();
+    }
+
+    return () => {
+      window.removeEventListener('online', handleOnlineStatus);
+      window.removeEventListener('offline', handleOnlineStatus);
+    };
+  }, [isOnline]);
   // Render error messages if data fetching or mutation fails
   if (userError) return <p>Error loading user data</p>;
   if (updateError) return <p>Error updating coins</p>;
 
   return (
     <div className='h-screen flex flex-col items-center justify-center gap-4'>
+      {!isOnline && (
+        <span className='badge badge-neutral'>
+          You're offline. Coins will sync when you reconnect.
+        </span>
+      )}
+      {isSyncing && (
+        <span className='badge badge-neutral'>Syncing coins...</span>
+      )}
       {/* Display user information */}
       <div className='flex items-center gap-4'>
         <div className='bg-base-300 text-base-content px-4 py-2 rounded-md h-full flex justify-center items-center'>
