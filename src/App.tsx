@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { gql, useMutation, useQuery } from '@apollo/client'; // GraphQL query and mutation hooks
 import { Player } from '@lottiefiles/react-lottie-player'; // Lottie player for animations
 import { useEffect, useRef, useState } from 'react'; // React hooks
@@ -66,7 +67,7 @@ const App = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine); // Initialize based on current status
   const [offlineCoins, setOfflineCoins] = useState(0); // Coins earned offline
   const [isSyncing, setIsSyncing] = useState(false); // Track sync state
-
+  console.log(offlineCoins);
   // Fetch user data from the GraphQL API
   const {
     data: userData,
