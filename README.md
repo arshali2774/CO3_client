@@ -9,6 +9,8 @@ This is a simple Telegram Web App assignment that allows users to tap and increa
 - **Real-time Update:** Coin balance is updated in real-time using GraphQL mutations.
 - **Lottie Animations:** Smooth animations using Lottie for both the coin display and tap button.
 - **Telegram Web App Integration:** The app integrates with Telegram's Web App platform to retrieve the user's data (username, user ID). [Link](https://t.me/tapme_co3_bot)
+  > [!NOTE] > **New Features:** The app now supports offline coins syncing. When the user comes online, the app syncs the coins from the local storage to the server. This ensures that the user's coin balance is always up-to-date, even when they are offline.
+  > [Testing](#testing-offline-coins-syncing)
 
 ## Project Structure
 
@@ -104,6 +106,17 @@ To interact with the app:
 2. When the user taps on the button, a +1 animation is triggered, and the coin balance is incremented in the UI.
 3. The new balance is sent to the backend using a GraphQL mutation, which updates the user's coin balance on the server.
 4. The app continuously fetches the latest balance to keep the UI up-to-date.
+
+### Testing Offline Coins Syncing
+
+- Start the app from Telegram bot.
+- Right click on the app and select "Inspect".
+- Open the "Network" tab.
+- Click on "No throttling" and select "Offline" from the dropdown.
+- Open the app and tap the button.
+- Observe the coin balance in the UI.
+- Close the app and open it again.
+- Observe that the coin balance is updated to the stored offline balance.
 
 ## Technology Stack
 
