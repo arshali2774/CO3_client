@@ -66,8 +66,9 @@ const App = () => {
   const [showPlusOne, setShowPlusOne] = useState(false); // Control to show the '+1' animation
   const [isOnline, setIsOnline] = useState(navigator.onLine); // Initialize based on current status
   const [offlineCoins, setOfflineCoins] = useState(0); // Coins earned offline
-  const [isSyncing, setIsSyncing] = useState(false); // Track sync state
-  console.log(offlineCoins);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  console.log(offlineCoins, syncError);
   // Fetch user data from the GraphQL API
   const {
     data: userData,
@@ -157,6 +158,7 @@ const App = () => {
     const storedCoins = Number(localStorage.getItem('offlineCoins')) || 0;
     if (storedCoins > 0) {
       setIsSyncing(true);
+      setSyncError(null);
 
       try {
         // Make the mutation request
@@ -174,10 +176,13 @@ const App = () => {
         console.log('Coins synced successfully.');
       } catch (error) {
         console.error('Error syncing coins:', error);
+        setSyncError('Failed to sync. Will retry when online.');
+      } finally {
         setIsSyncing(false);
       }
     }
   };
+
   // Sync coins when the user comes online
   useEffect(() => {
     const handleOnlineStatus = () => setIsOnline(navigator.onLine);
